@@ -38,6 +38,23 @@ def test_nearby_ready_alternative_artists_are_played_even_when_one_artist_is_lik
     assert 0 < counts["Кино"] <= 4
 
 
+def test_wave_gives_a_fresh_artist_a_turn_after_two_recent_plays_of_a_favorite():
+    history = [song(i, "Rock", artist=artist) for i, artist in enumerate(
+        ("Кино", "Сплин", "Кино", "Агата Кристи")
+    )]
+    favorite = song("favorite", "Rock", artist="Кино")
+    fresh = song("fresh", "Rock", artist="Машина Времени")
+    unknown = song("unknown", "Rock")
+    unknown["artist"] = ""
+    pending = dict(song("pending", "Rock", artist="Алиса"), ready=False)
+    queue = RadioQueue(history=history, profile=TasteProfile(artist_weight=2.8))
+    queue.fill(liked=[history[0]])
+    queue.set_catalogue([favorite, fresh, unknown, pending])
+
+    assert queue.next_track()["id"] == fresh["id"]
+    assert queue.next_track()["id"] == favorite["id"]
+
+
 def test_one_genre_like_is_mild_and_sustained_likes_change_the_mix():
     tracks = [song(f"{genre}-{index:02}", genre) for genre in ("Rock", "Pop", "Chanson", "Jazz") for index in range(24)]
 

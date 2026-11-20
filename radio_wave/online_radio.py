@@ -696,9 +696,17 @@ def radio_choices(
     if language_target is not None or genre_target is not None or artist_fallback is not None:
         targeted_skip = set(skip_sources) | skip_language_sources
         choices = []
+        rotate_first = (
+            not foreground and genre_target is None and artist_fallback is not None
+            and artist_fallback[1] == language_target
+        )
         if genre_target is not None:
             choices = _genre_choices(index, taste, targeted_skip, rotation, cancelled, genre_target, language_target,
                                      foreground=foreground)
+        elif rotate_first:
+            artist_genre, artist_side = artist_fallback
+            choices = _genre_choices(index, taste, targeted_skip, rotation, cancelled, artist_genre, artist_side,
+                                     foreground=True)
         if not choices and language_target is not None and not foreground:
             choices = _suggested_choices(
                 index, suggestions, played, targeted_skip, skip_recordings, taste, cancelled, target=language_target,
@@ -708,7 +716,7 @@ def radio_choices(
                 index, taste, targeted_skip, rotation, cancelled, language_target,
                 foreground=foreground or genre_target is not None,
             )
-        if not choices and artist_fallback is not None:
+        if not choices and artist_fallback is not None and not rotate_first:
             artist_genre, artist_side = artist_fallback
             choices = _genre_choices(index, taste, skip_sources, rotation, cancelled, artist_genre, artist_side,
                                      foreground=True)

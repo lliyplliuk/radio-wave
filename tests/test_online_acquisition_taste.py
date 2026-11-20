@@ -3,7 +3,8 @@
 import pytest
 
 from radio_wave import catalog
-from radio_wave.online_radio import acquisition_taste, radio_choices
+from radio_wave import online_radio
+from radio_wave.online_radio import OnlineChoice, acquisition_taste, radio_choices
 from radio_wave.ranker import TasteProfile, genre_suppressed, suppressed_genres
 from radio_wave.torrent_index import TorrentRelease
 
@@ -151,3 +152,28 @@ def test_empty_artist_only_search_falls_through_to_ordinary_index():
     [choice] = next_sources(index, rotation=0, artist_fallback=("rock", "ru"))
     assert index.calls[:2] == ["Кино", "latest"]
     assert choice.release == normal and not choice.genre_hint and not choice.language_target
+
+
+@pytest.mark.parametrize("available", [True, False])
+def test_artist_rotation_gets_one_search_before_similar_recording_by_a_repeat(monkeypatch, available):
+    repeated = catalog.CatalogRecording("Солнечная песня", "Кино", "kino-recording")
+    familiar = release("Кино — Другой альбом", 12)
+    fresh = release("Алиса — Новый альбом", 6)
+    index = Index({"Алиса": [fresh] if available else []})
+    taste = acquisition_taste([], genre_weight=0.8, artist_exposure={"Кино": 5})
+    searched = []
+
+    def resolve(_index, recording, *_args, **_kwargs):
+        searched.append(recording.artist)
+        return [OnlineChoice(familiar, recording=recording)]
+
+    monkeypatch.setattr(online_radio, "release_choices", resolve)
+    [choice] = radio_choices(
+        index, (), set(), set(), set(), 0, lambda: False, suggestions=[repeated],
+        taste=taste, language_target="ru", artist_fallback=("rock", "ru"),
+    )
+
+    assert index.calls == ["Алиса"]
+    assert choice.language_target == "ru"
+    assert choice.release == (fresh if available else familiar)
+    assert searched == ([] if available else ["Кино"])

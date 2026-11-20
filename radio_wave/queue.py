@@ -654,8 +654,22 @@ class RadioQueue:
         genres = {}
         first_artist = self._variety[first.id].get("artist")
         same_genre = self._variety[first.id].get("genre")
+        rotation_choices = set()
+        if not oldest_repeat and first.id in self._ready and artist_counts[first_artist] >= 2:
+            family = track_genre_family(first.track)
+            side = language_side(first.track)
+            # Rotate artists within the same part of the listener's taste profile.
+            rotation_choices = {
+                item.id for item in options
+                if item.id in self._ready and (artist := self._variety[item.id].get("artist"))
+                and artist not in artist_counts and family and track_genre_family(item.track) == family
+                and language_side(item.track) == side
+                and (item.track.get("source") != "torrent" or _verified_artist(item.track))
+            }
 
         def comparable(item: Scored) -> bool:
+            if item.id in rotation_choices:
+                return True
             if oldest_repeat:
                 return item.score + _TASTE_MARGIN >= first.score
             margin = _TASTE_MARGIN
@@ -685,6 +699,7 @@ class RadioQueue:
                 not oldest_repeat and item.is_live and (keys.get("genre"), item.id in self._ready) in studio,
                 not oldest_repeat and bool(keys.get("artist") and keys["artist"] == previous.get("artist")),
                 -genre_deficit.get(keys.get("genre"), 0.0),
+                item.id not in rotation_choices,
                 space_releases and keys.get("torrent") == last_release,
                 0 if oldest_repeat else artist_counts[keys.get("artist")],
                 sum(previous.get(kind) == value for kind, value in observed),
