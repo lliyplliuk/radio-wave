@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Радио из коллекции
+Name[en]=Radio from Collection
+Comment=Радио из вашей локальной коллекции аудио
+TryExec=radio-wave
+Exec=radio-wave
+Icon=multimedia-player
+Terminal=false
+Categories=AudioVideo;Audio;Player;Music;
+StartupNotify=true

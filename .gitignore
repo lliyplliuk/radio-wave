@@ -1,0 +1,60 @@
+# Локальные настройки и ключи
+.env
+.env.*
+!.env.example
+.envrc
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Редакторы и ОС
+.idea/
+.vscode/
+*.iml
+.DS_Store
+*.swp
+
+# Linux и Python
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+__pycache__/
+*.py[cod]
+.coverage
+coverage.xml
+htmlcov/
+
+# Сборки
+build/
+dist/
+*.apk
+*.aab
+*.apks
+
+# Локальные данные и медиа
+.cache/
+downloads/
+*.log
+*.db
+*.sqlite
+*.sqlite3
+*.torrent
+*.fastresume
+*.mp3
+*.flac
+*.wav
+*.m4a
+*.aac
+*.ogg
+*.oga
+*.opus
+*.aiff
+*.aif
+*.ape
+*.wv
+*.wma
